@@ -5,6 +5,19 @@ VisualStudioVersion = 17.6.33829.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RansomAware", "RansomAware.vcxproj", "{75EF2CC9-18B5-498C-923B-174D093BFC0C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RansomGUI", "..\RansomGUI\RansomGUI.vcxproj", "{B7EC499F-1701-4910-AB44-25DA2E7ED76E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{3710D559-E887-4B7F-B710-565902E43764}"
+	ProjectSection(SolutionItems) = preProject
+		..\include\include.hpp = ..\include\include.hpp
+		..\include\singleton.hpp = ..\include\singleton.hpp
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "skCrypt", "skCrypt", "{F735FFC3-E95D-499F-A137-27B23F98476C}"
+	ProjectSection(SolutionItems) = preProject
+		..\include\skCrypter\files\skCrypter.h = ..\include\skCrypter\files\skCrypter.h
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,9 +34,20 @@ Global
 		{75EF2CC9-18B5-498C-923B-174D093BFC0C}.Release|x64.Build.0 = Release|x64
 		{75EF2CC9-18B5-498C-923B-174D093BFC0C}.Release|x86.ActiveCfg = Release|Win32
 		{75EF2CC9-18B5-498C-923B-174D093BFC0C}.Release|x86.Build.0 = Release|Win32
+		{B7EC499F-1701-4910-AB44-25DA2E7ED76E}.Debug|x64.ActiveCfg = Debug|x64
+		{B7EC499F-1701-4910-AB44-25DA2E7ED76E}.Debug|x64.Build.0 = Debug|x64
+		{B7EC499F-1701-4910-AB44-25DA2E7ED76E}.Debug|x86.ActiveCfg = Debug|Win32
+		{B7EC499F-1701-4910-AB44-25DA2E7ED76E}.Debug|x86.Build.0 = Debug|Win32
+		{B7EC499F-1701-4910-AB44-25DA2E7ED76E}.Release|x64.ActiveCfg = Release|x64
+		{B7EC499F-1701-4910-AB44-25DA2E7ED76E}.Release|x64.Build.0 = Release|x64
+		{B7EC499F-1701-4910-AB44-25DA2E7ED76E}.Release|x86.ActiveCfg = Release|Win32
+		{B7EC499F-1701-4910-AB44-25DA2E7ED76E}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F735FFC3-E95D-499F-A137-27B23F98476C} = {3710D559-E887-4B7F-B710-565902E43764}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7148B862-7F4C-463F-9DD4-9B532BF03C0B}

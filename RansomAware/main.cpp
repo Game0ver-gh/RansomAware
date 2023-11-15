@@ -1,11 +1,10 @@
-#include "include/include.hpp"
+#include "..\include\include.hpp"
+#include <windows.h>
 
 //https://logrhythm.com/blog/a-technical-analysis-of-wannacry-ransomware/
 
-//RansomAware - main dropper soft
 
-int main(int argc, char** argv)
+int main()
 {
-	printf("%s\n", "Normal string");
-	printf("%s\n", (char*)_("RansomAware"));
+	return 0;
 }

@@ -9,28 +9,10 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="include">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="depends">
-      <UniqueIdentifier>{fcd92294-d42c-4c30-ae8c-d6876904d2fa}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="depends\skCrypter">
-      <UniqueIdentifier>{e108e576-611e-4eee-a5f0-02315aefc5d5}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>src</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="depends\skCrypter\files\skCrypter.h">
-      <Filter>depends\skCrypter</Filter>
-    </ClInclude>
-    <ClInclude Include="include\include.hpp">
-      <Filter>include</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
