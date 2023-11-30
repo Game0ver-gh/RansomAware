@@ -1,0 +1,3 @@
+[submodule "skCrypter"]
+	path = skCrypter
+	url = https://github.com/skadro-official/skCrypter.git
