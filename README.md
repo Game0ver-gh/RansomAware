@@ -1,19 +1,40 @@
-# RansomAware
+# **RansomAware**
 
-# About
-This repository is a part of my academic thesis project, focused on the topic of "Malicious Ransomware Software for Educational Purposes." The primary objective of this project is to develop a demonstrative application for educational use, showcasing the inner workings of ransomware attacks, with the goal of raising awareness during cybersecurity training sessions.
+## Overview
+RansomAware is an educational C++ program designed to simulate a real ransomware attack. This project is part of my engineering thesis titled "RANSOMWARE SOFTWARE INTENDED FOR EDUCATIONAL PURPOSES". It aims to demonstrate the mechanics and dangers of ransomware attacks in a controlled environment for educational purposes.
 
-# Repository Contents
-At its core, this repository houses an educational (demonstration) version of ransomware software named "RansomAware," implemented in C/C++. The software is designed for analytical purposes and simulations, and it includes commonly used file encryption practices as well as anti-debugging techniques.
+## Technologies and Tools
+- **Programming Language**: Entirely written in C/C++.
+- **Development Environment**: Developed using Microsoft Visual Studio.
+- **Simulation Environment**: Utilizes a secure VirtualBox environment running Windows 11.
 
-# Key Objectives
-- Create an educational tool to illustrate how ransomware operates.
-- Promote understanding of ransomware attacks for educational and cybersecurity training.
-- Showcase encryption methods and anti-debugging strategies commonly employed by ransomware.
-- Provide a safe and controlled environment for educational purposes, emphasizing ethical use.
+## Features
+- **Ransomware Simulation**: Mimics a real ransomware attack sequence.
+- **Encryption Libraries**: Incorporates OpenSSL for AES128 and RSA2048 encryption.
+- **String Encryption**: Uses advanced techniques for encrypting strings within the application, enhancing the overall security and obfuscation.
+- **Disguise Mechanism**: Masquerades as a 'Virtual Intranet Access' application to encourage execution. It also uses misleading strings and information to obscure its true purpose and mislead analysis efforts.
+- **Digital Signature Spoofing**: Utilizes stolen digital signatures from Microsoft and Virtual Intranet Access .dll files.
+- **Low System Resource Utilization**: Designed to consume minimal system resources, ensuring that the encryption process remains undetected by users and system monitoring tools until it's too late...
+- **File Encryption**: Encrypts files with extensions such as .xlsl, .png, .mp3, while avoiding system-critical extensions like .dll, .exe, .dat to maintain system stability.
+- **Persistent Service**: Sets up as a system service and adds to startup for continued operation post-system restart.
+- **User Interface**: Changes desktop wallpaper and displays a GUI with decryption instructions upon encryption completion. Includes an 'educational mode' allowing easy decryption without payment for learning purposes.
+- **VirusTotal Detection Score**: Demonstrates a low detection rate with a score of 7/72 on VirusTotal, highlighting its stealth and sophistication. ![VirusTotal Result](ss/virustotal.png)
 
-# Opis kodu / dokumentacja
-todo
+## Screenshots
+### Before running Virtual Intranet Access.exe
+![Before](ss/before.png)
+### During encryption process
+![During](ss/during.png)
+### After encryption process
+![After](ss/after.png)
+![After2](ss/result2.png)
+### After 'payment'
+![After3](ss/after2.png)
 
-# Disclaimer
-This repository and the "RansomAware" software are intended strictly for educational and research purposes. Under no circumstances should it be used for malicious activities. The author and contributors are not responsible for any misuse or harm resulting from the software's usage.
+## Installation and Usage
+1. **Environment**: Recommended to run in a virtual, isolated environment like VirtualBox.
+2. **Dependencies**: Requires Microsoft Visual C++ Redistributable.
+3. **Supported Systems**: Compatible only with Windows architecture x64.
+
+## Educational Purpose note
+This project is strictly for educational purposes to understand and demonstrate the risks associated with ransomware attacks. It is crucial to use this software responsibly and ethically.
