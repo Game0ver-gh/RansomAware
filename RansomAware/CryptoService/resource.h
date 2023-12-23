@@ -1,10 +1,10 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by RansomGUI.rc
+// Used by CryptoService.rc
 //
-#define IDB_BITMAP1                     101
-#define IDB_BITMAP2                     102
-#define MAINICON                       103
+#define MAINICON                        101
+#define IDR_ZIP1                        102
+#define IDB_PNG1                        103
 
 // Next default values for new objects
 // 

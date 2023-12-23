@@ -6,7 +6,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-    dbg::initConsole();
+    dbg::initLogs();
 
     auto& window = gui::Window::getInstance();
     window.show();

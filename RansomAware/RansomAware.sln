@@ -3,12 +3,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33829.357
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RansomAware", "RansomAware.vcxproj", "{75EF2CC9-18B5-498C-923B-174D093BFC0C}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RansomGUI", "..\RansomGUI\RansomGUI.vcxproj", "{B7EC499F-1701-4910-AB44-25DA2E7ED76E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8945F0EF-B7D9-488A-BAA3-18A2C1E9397E} = {8945F0EF-B7D9-488A-BAA3-18A2C1E9397E}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{3710D559-E887-4B7F-B710-565902E43764}"
 	ProjectSection(SolutionItems) = preProject
+		..\include\ComsClient.hpp = ..\include\ComsClient.hpp
+		..\include\ComsServer.hpp = ..\include\ComsServer.hpp
 		..\include\include.hpp = ..\include\include.hpp
 		..\include\singleton.hpp = ..\include\singleton.hpp
 	EndProjectSection
@@ -16,6 +19,13 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "skCrypt", "skCrypt", "{F735FFC3-E95D-499F-A137-27B23F98476C}"
 	ProjectSection(SolutionItems) = preProject
 		..\include\skCrypter\files\skCrypter.h = ..\include\skCrypter\files\skCrypter.h
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Encrypter", "..\Encrypter\Encrypter.vcxproj", "{B71E75B7-A50B-414D-96B9-5EF612A87FDD}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CryptoService", "CryptoService\CryptoService.vcxproj", "{8945F0EF-B7D9-488A-BAA3-18A2C1E9397E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B71E75B7-A50B-414D-96B9-5EF612A87FDD} = {B71E75B7-A50B-414D-96B9-5EF612A87FDD}
 	EndProjectSection
 EndProject
 Global
@@ -26,22 +36,28 @@ Global
 		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{75EF2CC9-18B5-498C-923B-174D093BFC0C}.Debug|x64.ActiveCfg = Debug|x64
-		{75EF2CC9-18B5-498C-923B-174D093BFC0C}.Debug|x64.Build.0 = Debug|x64
-		{75EF2CC9-18B5-498C-923B-174D093BFC0C}.Debug|x86.ActiveCfg = Debug|Win32
-		{75EF2CC9-18B5-498C-923B-174D093BFC0C}.Debug|x86.Build.0 = Debug|Win32
-		{75EF2CC9-18B5-498C-923B-174D093BFC0C}.Release|x64.ActiveCfg = Release|x64
-		{75EF2CC9-18B5-498C-923B-174D093BFC0C}.Release|x64.Build.0 = Release|x64
-		{75EF2CC9-18B5-498C-923B-174D093BFC0C}.Release|x86.ActiveCfg = Release|Win32
-		{75EF2CC9-18B5-498C-923B-174D093BFC0C}.Release|x86.Build.0 = Release|Win32
 		{B7EC499F-1701-4910-AB44-25DA2E7ED76E}.Debug|x64.ActiveCfg = Debug|x64
 		{B7EC499F-1701-4910-AB44-25DA2E7ED76E}.Debug|x64.Build.0 = Debug|x64
 		{B7EC499F-1701-4910-AB44-25DA2E7ED76E}.Debug|x86.ActiveCfg = Debug|Win32
-		{B7EC499F-1701-4910-AB44-25DA2E7ED76E}.Debug|x86.Build.0 = Debug|Win32
 		{B7EC499F-1701-4910-AB44-25DA2E7ED76E}.Release|x64.ActiveCfg = Release|x64
 		{B7EC499F-1701-4910-AB44-25DA2E7ED76E}.Release|x64.Build.0 = Release|x64
 		{B7EC499F-1701-4910-AB44-25DA2E7ED76E}.Release|x86.ActiveCfg = Release|Win32
-		{B7EC499F-1701-4910-AB44-25DA2E7ED76E}.Release|x86.Build.0 = Release|Win32
+		{B71E75B7-A50B-414D-96B9-5EF612A87FDD}.Debug|x64.ActiveCfg = Debug|x64
+		{B71E75B7-A50B-414D-96B9-5EF612A87FDD}.Debug|x64.Build.0 = Debug|x64
+		{B71E75B7-A50B-414D-96B9-5EF612A87FDD}.Debug|x86.ActiveCfg = Debug|Win32
+		{B71E75B7-A50B-414D-96B9-5EF612A87FDD}.Debug|x86.Build.0 = Debug|Win32
+		{B71E75B7-A50B-414D-96B9-5EF612A87FDD}.Release|x64.ActiveCfg = Release|x64
+		{B71E75B7-A50B-414D-96B9-5EF612A87FDD}.Release|x64.Build.0 = Release|x64
+		{B71E75B7-A50B-414D-96B9-5EF612A87FDD}.Release|x86.ActiveCfg = Release|Win32
+		{B71E75B7-A50B-414D-96B9-5EF612A87FDD}.Release|x86.Build.0 = Release|Win32
+		{8945F0EF-B7D9-488A-BAA3-18A2C1E9397E}.Debug|x64.ActiveCfg = Debug|x64
+		{8945F0EF-B7D9-488A-BAA3-18A2C1E9397E}.Debug|x64.Build.0 = Debug|x64
+		{8945F0EF-B7D9-488A-BAA3-18A2C1E9397E}.Debug|x86.ActiveCfg = Debug|Win32
+		{8945F0EF-B7D9-488A-BAA3-18A2C1E9397E}.Debug|x86.Build.0 = Debug|Win32
+		{8945F0EF-B7D9-488A-BAA3-18A2C1E9397E}.Release|x64.ActiveCfg = Release|x64
+		{8945F0EF-B7D9-488A-BAA3-18A2C1E9397E}.Release|x64.Build.0 = Release|x64
+		{8945F0EF-B7D9-488A-BAA3-18A2C1E9397E}.Release|x86.ActiveCfg = Release|Win32
+		{8945F0EF-B7D9-488A-BAA3-18A2C1E9397E}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

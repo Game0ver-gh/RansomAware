@@ -6,6 +6,7 @@
 #include <string.h>
 #include <Richedit.h>
 
+namespace fs = std::filesystem;
 using namespace gui;
 using namespace std::chrono;
 
@@ -37,27 +38,43 @@ LRESULT CALLBACK gui::Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 
         if (wmId == (UINT)Widget::HYPERLINK_WHAT_IS_BTC and wmEvent == STN_CLICKED)
         {
-            DBG_PRINT("Hyperlink: HYPERLINK_WHAT_IS_BTC");
             ShellExecute(NULL, L"open", GET_TEXT(Localization::Text::LINK_1), NULL, NULL, SW_SHOWNORMAL);
-            DBG_PRINT("Opening link: %ls", GET_TEXT(Localization::Text::LINK_1));
+            DBG_PRINT("Hyperlink: opening link: %ls", GET_TEXT(Localization::Text::LINK_1));
         }
         else if (wmId == (UINT)Widget::HYPERLINK_HOW_TO_BUY and wmEvent == STN_CLICKED)
         {
-            DBG_PRINT("Hyperlink: HYPERLINK_HOW_TO_BUY");
             ShellExecute(NULL, L"open", GET_TEXT(Localization::Text::LINK_2), NULL, NULL, SW_SHOWNORMAL);
-            DBG_PRINT("Opening link: %ls", GET_TEXT(Localization::Text::LINK_2));
+            DBG_PRINT("Hyperlink: opening link: %ls", GET_TEXT(Localization::Text::LINK_2));
         }
 
         switch (wmId)
         {
+
+        // Always true for simulation purposes
         case (UINT)Widget::CHECK_PAYMENT_BUTTON:
         {
             DBG_PRINT("***Button: CHECK_PAYMENT_BUTTON");
 
+            const char* data = skCrypt("PAYMENT_RECEIVED");
+            DWORD bytesWritten = 0;
+            if (Window::getInstance().m_comsClient->writeData(data, DWORD(strlen(data) + 1), bytesWritten))
+            {
+                DBG_PRINT("Msg sent: %s", data);
+            }
+
         } break;
+
+        // Works only once 
         case (UINT)Widget::FREE_DECRYPT_BUTTON:
         {
             DBG_PRINT("***Button: FREE_DECRYPT_BUTTON");
+
+            const char* data = skCrypt("FREE_DECRYPT");
+            DWORD bytesWritten = 0;
+            if (Window::getInstance().m_comsClient->writeData(data, DWORD(strlen(data) + 1), bytesWritten))
+            {
+                DBG_PRINT("Msg sent: %s", data);
+            }
 
         } break;
         case (UINT)Widget::COPY_BUTTON:
@@ -98,7 +115,7 @@ LRESULT CALLBACK gui::Window::WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LP
 
                     window.m_widgets.clear();
 
-                    window.redrawWidgets();
+                    window.drawWidgets();
                     SendMessage(window.m_widgets[Widget::LANGUAGE_LIST_BOX], CB_SETCURSEL, (WPARAM)selectedItemIndex, 0);
 
                     InvalidateRect(hwnd, NULL, TRUE);
@@ -238,8 +255,7 @@ void gui::Window::updateTimer()
     }
 
     SetWindowText(GetDlgItem(m_window, int(Widget::TIMER)), countdownText.c_str());
-    RECT rect;
-    GetClientRect(m_window, &rect);
+    RECT rect{ 10, 280, 10 + 180, 280 + 30 };
     InvalidateRect(m_window, &rect, TRUE);
 }
 
@@ -463,7 +479,7 @@ RECT gui::Window::getWidgetRect(const Widget& widget)
     return rect;
 }
 
-void gui::Window::redrawWidgets()
+void gui::Window::drawWidgets()
 {
     drawLabel();
     drawRichText();
@@ -475,6 +491,8 @@ void gui::Window::redrawWidgets()
 
 gui::Window::Window()
 {
+    m_comsClient = std::make_unique<NamedPipeClient>("RAwarePipeComs");
+
     try
     {
         createWindow();
@@ -579,7 +597,10 @@ void gui::Window::createWindow()
     if (hInstRichEdit == NULL) 
         throw std::runtime_error("Failed to load Msftedit library.");
 
-    redrawWidgets();
+    drawWidgets();
 
     windowCreated = true;
+
+    if (not m_comsClient->connect())
+        throw std::runtime_error("Failed to connect to the named pipe");
 }

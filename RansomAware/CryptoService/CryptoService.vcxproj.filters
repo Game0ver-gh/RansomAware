@@ -15,41 +15,38 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="CryptoService.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Window.cpp">
+    <ClCompile Include="applink.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="localization.cpp">
+    <ClCompile Include="ServiceWorker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Window.hpp">
+    <ClInclude Include="ServiceWorker.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="localization.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="RansomGUI.rc">
+    <ResourceCompile Include="CryptoService.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="res\bitcoin.bmp">
+    <Image Include="VIA_icon.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="res\logo.bmp">
+    <Image Include="wallpaper.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="res\icon.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\bin\libs.zip" />
   </ItemGroup>
 </Project>

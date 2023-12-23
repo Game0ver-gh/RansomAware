@@ -1,0 +1,1 @@
+python .\sigthief.py -s .\anuacui.exe.sig -t '.\Virtual Intranet Access.exe'
