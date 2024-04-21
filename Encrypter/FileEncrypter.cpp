@@ -146,11 +146,11 @@ bool FileEncrypter::decryptFile(const char* path)
 bool FileEncrypter::computeFileSHA256(const char* path, std::string* hashOut)
 {
     std::ifstream file(path, std::ios::binary);
-    if (!file)
+    if (not file)
         return false;
 
     auto* ctx = EVP_MD_CTX_new();
-    if (!ctx)
+    if (not ctx)
         return false;
 
     if (EVP_DigestInit_ex(ctx, EVP_sha256(), nullptr) != 1) 
@@ -207,7 +207,7 @@ bool FileEncrypter::encryptData(std::vector<unsigned char>* data, const CryptoKe
     std::vector<unsigned char> encryptedData(data->size() + CryptoKeyManager::AESKey::KEY_SIZE);
 
     auto* ctx = EVP_CIPHER_CTX_new();
-    if (!ctx)
+    if (not ctx)
         return false;
 
     if (EVP_EncryptInit_ex(ctx, EVP_aes_128_cbc(), nullptr, aes.key.data(), aes.iv.data()) != 1)
@@ -246,7 +246,7 @@ bool FileEncrypter::decryptData(std::vector<unsigned char>* data, const CryptoKe
     std::vector<unsigned char> decryptedData(data->size());
 
     auto* ctx = EVP_CIPHER_CTX_new();
-    if (!ctx)
+    if (not ctx)
         return false;
 
     if (EVP_DecryptInit_ex(ctx, EVP_aes_128_cbc(), nullptr, aes.key.data(), aes.iv.data()) != 1) 

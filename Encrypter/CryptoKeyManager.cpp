@@ -55,7 +55,7 @@ void printKeys(const EVP_PKEY* pKey)
 
 #define         RSA_KEY_SIZE 2048
 EVP_PKEY*       m_rsaKeys{ nullptr };	///< Pointer to RSA keys.
-std::string		m_lastError;			///< String to store the last error message.
+std::string	    m_lastError;            ///< String to store the last error message.
 
 CryptoKeyManager::~CryptoKeyManager() 
 {
@@ -76,10 +76,10 @@ bool CryptoKeyManager::generateRSAKey()
     if (m_rsaKeys)
     {
         EVP_PKEY_free(m_rsaKeys);
-	}
+    }
 
     auto* pkey_ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_RSA, nullptr);
-    if (!pkey_ctx)
+    if (not pkey_ctx)
     {
         collectLastError();
         return false;  
@@ -117,7 +117,7 @@ bool CryptoKeyManager::sendKeysTo(const char* path)
     p.replace_extension();
 
     auto* file = fopen((p.string() + ".pem").c_str(), "wb");
-    if (!file)
+    if (not file)
     {
         collectLastError();
         return false;
@@ -132,18 +132,18 @@ bool CryptoKeyManager::sendKeysTo(const char* path)
     fclose(file);
 
     file = fopen((p.string() + ".pub").c_str(), "wb");
-    if (!file)
+    if (not file)
     {
 		collectLastError();
 		return false;
-	}
+    }
 
     if (PEM_write_PUBKEY(file, m_rsaKeys) <= 0)
     {
-		fclose(file);
-		collectLastError();
-		return false;
-	}
+        fclose(file);
+        collectLastError();
+        return false;
+    }
     fclose(file);
 
     return true;
@@ -151,14 +151,14 @@ bool CryptoKeyManager::sendKeysTo(const char* path)
 
 bool CryptoKeyManager::destroyPrivateKey()
 {
-    if (!m_rsaKeys)
+    if (not m_rsaKeys)
     {
         collectLastError();
         return false;
     }
 
     EVP_PKEY_CTX* ctx = EVP_PKEY_CTX_new_from_pkey(nullptr, m_rsaKeys, nullptr);
-    if (!ctx)
+    if (not ctx)
     {
         collectLastError();
         return false;
@@ -184,8 +184,8 @@ bool CryptoKeyManager::destroyPrivateKey()
     EVP_PKEY_get_bn_param(m_rsaKeys, "n", &n);
     EVP_PKEY_get_bn_param(m_rsaKeys, "e", &e);
 
-    if (!OSSL_PARAM_BLD_push_BN(param_bld, "n", n) ||
-        !OSSL_PARAM_BLD_push_BN(param_bld, "e", e))
+    if (not OSSL_PARAM_BLD_push_BN(param_bld, "n", n) or
+        not OSSL_PARAM_BLD_push_BN(param_bld, "e", e))
     {
         OSSL_PARAM_BLD_free(param_bld);
         EVP_PKEY_CTX_free(ctx);
@@ -194,7 +194,7 @@ bool CryptoKeyManager::destroyPrivateKey()
     }
 
     OSSL_PARAM* params = OSSL_PARAM_BLD_to_param(param_bld);
-    if (!params)
+    if (not params)
     {
         OSSL_PARAM_BLD_free(param_bld);
         EVP_PKEY_CTX_free(ctx);
@@ -226,18 +226,18 @@ bool CryptoKeyManager::receivePrivateKeyFrom(const char* path)
 {
     if (not m_rsaKeys)
     {
-		collectLastError();
-		return false;
-	}
+        collectLastError();
+        return false;
+    }
 
-    if (!std::filesystem::exists(path)) 
+    if (not std::filesystem::exists(path))
     {
         collectLastError();
         return false;
     }
 
     FILE* privateKeyFile = fopen(path, "rb");
-    if (!privateKeyFile) 
+    if (not privateKeyFile)
     {
         collectLastError();
         return false;
@@ -246,7 +246,7 @@ bool CryptoKeyManager::receivePrivateKeyFrom(const char* path)
     EVP_PKEY* privatePkey = PEM_read_PrivateKey(privateKeyFile, nullptr, nullptr, nullptr);
     fclose(privateKeyFile);
 
-    if (!privatePkey) 
+    if (not privatePkey)
     {
         collectLastError();
         return false;
@@ -269,14 +269,14 @@ bool CryptoKeyManager::generateAESKey(CryptoKeyManager::AESKey* aesKey)
 {
     if (not aesKey)
     {
-		collectLastError();
-		return false;
-	}
+        collectLastError();
+        return false;
+    }
 
     aesKey->key.resize(AESKey::KEY_SIZE);
     aesKey->iv.resize(AESKey::IV_SIZE);
 
-    if (RAND_bytes(aesKey->key.data(), AESKey::KEY_SIZE) != 1 ||
+    if (RAND_bytes(aesKey->key.data(), AESKey::KEY_SIZE) != 1 or
         RAND_bytes(aesKey->iv.data(), AESKey::IV_SIZE) != 1)
     {
         collectLastError();
@@ -295,7 +295,7 @@ bool CryptoKeyManager::restorePublicKeyFrom(const char* path)
     }
 
     FILE* file = fopen(path, "r");
-    if (!file) 
+    if (not file) 
     {
         collectLastError();
         return false;
@@ -304,7 +304,7 @@ bool CryptoKeyManager::restorePublicKeyFrom(const char* path)
     m_rsaKeys = PEM_read_PUBKEY(file, nullptr, nullptr, nullptr);
     fclose(file);
 
-    if (!m_rsaKeys) 
+    if (not m_rsaKeys) 
     {
         collectLastError();
         return false;
@@ -315,14 +315,14 @@ bool CryptoKeyManager::restorePublicKeyFrom(const char* path)
 
 bool CryptoKeyManager::encryptAESKey(AESKey* aesKey)
 {
-    if (!m_rsaKeys || !aesKey)
+    if (not m_rsaKeys or not aesKey)
     {
         collectLastError();
         return aesKey;
     }
 
     auto* ctx = EVP_PKEY_CTX_new(m_rsaKeys, nullptr);
-    if (!ctx)
+    if (not ctx)
     {
         collectLastError();
         return aesKey;
@@ -374,7 +374,7 @@ bool CryptoKeyManager::decryptAESKey(AESKey* aesKey)
     }
 
     auto* ctx = EVP_PKEY_CTX_new(m_rsaKeys, nullptr);
-    if (!ctx)
+    if (not ctx)
     {
         collectLastError();
         return false;
@@ -426,7 +426,7 @@ bool CryptoKeyManager::hasPrivateKey()
     }
 
     BIO* bio = BIO_new(BIO_s_mem());
-    if (!bio) 
+    if (not bio)
     {
         collectLastError();
         return false;

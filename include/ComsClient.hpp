@@ -3,16 +3,16 @@
 
 class NamedPipeClient 
 {
-    HANDLE hPipe;
-    std::string pipeName;
+    HANDLE m_hPipe;
+    std::string m_pipeName;
 
 public:
-    explicit NamedPipeClient(const std::string& name) : pipeName("\\\\.\\pipe\\" + name), hPipe(INVALID_HANDLE_VALUE) {}
+    explicit NamedPipeClient(const std::string& name) : m_pipeName("\\\\.\\pipe\\" + name), m_hPipe(INVALID_HANDLE_VALUE) {}
 
     bool connect() 
     {
-        hPipe = CreateFileA(
-            pipeName.c_str(),
+        m_hPipe = CreateFileA(
+            m_pipeName.c_str(),
             GENERIC_READ | GENERIC_WRITE,
             0,
             NULL,
@@ -20,25 +20,25 @@ public:
             0,
             NULL);
 
-        return hPipe != INVALID_HANDLE_VALUE;
+        return m_hPipe != INVALID_HANDLE_VALUE;
     }
 
     bool readData(void* buffer, DWORD bufferSize, DWORD& bytesRead) 
     {
-        return ReadFile(hPipe, buffer, bufferSize, &bytesRead, NULL) != FALSE;
+        return ReadFile(m_hPipe, buffer, bufferSize, &bytesRead, NULL) != FALSE;
     }
 
     bool writeData(const void* buffer, DWORD bufferSize, DWORD& bytesWritten) 
     {
-        return WriteFile(hPipe, buffer, bufferSize, &bytesWritten, NULL) != FALSE;
+        return WriteFile(m_hPipe, buffer, bufferSize, &bytesWritten, NULL) != FALSE;
     }
 
     void close() 
     {
-        if (hPipe != INVALID_HANDLE_VALUE) 
+        if (m_hPipe != INVALID_HANDLE_VALUE)
         {
-            CloseHandle(hPipe);
-            hPipe = INVALID_HANDLE_VALUE;
+            CloseHandle(m_hPipe);
+            m_hPipe = INVALID_HANDLE_VALUE;
         }
     }
 

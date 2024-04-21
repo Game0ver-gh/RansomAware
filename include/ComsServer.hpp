@@ -3,16 +3,16 @@
 
 class NamedPipeServer 
 {
-    HANDLE hPipe;
-    std::string pipeName;
+    HANDLE m_hPipe;
+    std::string m_pipeName;
 
 public:
-    explicit NamedPipeServer(const std::string& name) : pipeName("\\\\.\\pipe\\" + name), hPipe(INVALID_HANDLE_VALUE) {}
+    explicit NamedPipeServer(const std::string& name) : m_pipeName("\\\\.\\pipe\\" + name), m_hPipe(INVALID_HANDLE_VALUE) {}
 
     bool create() 
     {
-        hPipe = CreateNamedPipeA(
-            pipeName.c_str(),
+        m_hPipe = CreateNamedPipeA(
+            m_pipeName.c_str(),
             PIPE_ACCESS_DUPLEX,
             PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,
             1,
@@ -21,31 +21,31 @@ public:
             NMPWAIT_USE_DEFAULT_WAIT,
             NULL);
 
-        return hPipe != INVALID_HANDLE_VALUE;
+        return m_hPipe != INVALID_HANDLE_VALUE;
     }
 
     bool connect() 
     {
-        return ConnectNamedPipe(hPipe, NULL) ? true : (GetLastError() == ERROR_PIPE_CONNECTED);
+        return ConnectNamedPipe(m_hPipe, NULL) ? true : (GetLastError() == ERROR_PIPE_CONNECTED);
     }
 
     bool readData(void* buffer, DWORD bufferSize, DWORD& bytesRead) 
     {
-        return ReadFile(hPipe, buffer, bufferSize, &bytesRead, NULL) != FALSE;
+        return ReadFile(m_hPipe, buffer, bufferSize, &bytesRead, NULL) != FALSE;
     }
 
     bool writeData(const void* buffer, DWORD bufferSize, DWORD& bytesWritten) 
     {
-        return WriteFile(hPipe, buffer, bufferSize, &bytesWritten, NULL) != FALSE;
+        return WriteFile(m_hPipe, buffer, bufferSize, &bytesWritten, NULL) != FALSE;
     }
 
     void close() 
     {
-        if (hPipe != INVALID_HANDLE_VALUE) 
+        if (m_hPipe != INVALID_HANDLE_VALUE)
         {
-            DisconnectNamedPipe(hPipe);
-            CloseHandle(hPipe);
-            hPipe = INVALID_HANDLE_VALUE;
+            DisconnectNamedPipe(m_hPipe);
+            CloseHandle(m_hPipe);
+            m_hPipe = INVALID_HANDLE_VALUE;
         }
     }
 

@@ -6,6 +6,11 @@
 #include <string.h>
 #include <Richedit.h>
 
+/*
+    [Most awful part of the project]
+    This is the main window class that handles all the GUI elements.
+*/
+
 namespace fs = std::filesystem;
 using namespace gui;
 using namespace std::chrono;

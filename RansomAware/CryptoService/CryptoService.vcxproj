@@ -121,7 +121,8 @@
       <AdditionalDependencies>$(CoreLibraryDependencies);libencrypt_dbg.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>powershell -NoProfile -ExecutionPolicy Bypass -Command "python $(ProjectDir)..\..\SigThief\sigthief.py -s $(ProjectDir)..\..\SigThief\anuacui_cert -t '$(TargetPath)' ; rm '$(TargetPath)' ; mv '$(TargetPath)_signed' '$(TargetPath)'"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -140,11 +141,11 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <AdditionalDependencies>$(CoreLibraryDependencies);libencrypt.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>D:\ZUT\RansomAware\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)\..\..\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <DelayLoadDLLs>libencrypt.dll</DelayLoadDLLs>
     </Link>
     <PostBuildEvent>
-      <Command>powershell -NoProfile -ExecutionPolicy Bypass -Command "python $(ProjectDir)..\..\SigThief\sigthief.py -s $(ProjectDir)..\..\SigThief\anuacui_cert -t '$(TargetPath)' ; rm '$(TargetPath)' ; mv '$(TargetPath)_signed' '$(TargetPath)'"</Command>
+      <Command>powershell -NoProfile -ExecutionPolicy Bypass -Command "python $(ProjectDir)..\..\SigThief\sigthief.py -s $(ProjectDir)..\..\certs\anuacui_cert -t '$(TargetPath)' ; rm '$(TargetPath)' ; mv '$(TargetPath)_signed' '$(TargetPath)'"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -162,9 +163,6 @@
   <ItemGroup>
     <Image Include="VIA_icon.ico" />
     <Image Include="wallpaper.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\bin\libs.zip" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -3,8 +3,6 @@
 #include <vector>
 #include <string>
 
-
-
 class Localization final : public Singleton<Localization>
 {
 	friend class Singleton<Localization>;
@@ -53,5 +51,5 @@ public:
 	const wchar_t* getText(const Text& text);
 
 private:
-	Language					m_language;
+	Language m_language;
 };

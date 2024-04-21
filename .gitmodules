@@ -1,7 +1,6 @@
 [submodule "skCrypter"]
-	path = include/skCrypter/
+	path = skCrypter
 	url = https://github.com/skadro-official/skCrypter.git
-	
 [submodule "SigThief"]
-	path = SigThief/
+	path = SigThief
 	url = https://github.com/secretsquirrel/SigThief.git

@@ -7,7 +7,7 @@
 #include <cstdio>
 #include <random>
 #include <memory>
-#include "skCrypter/files/skCrypter.h"
+#include "..\skCrypter\files\skCrypter.h"
 
 namespace utils 
 {

@@ -143,7 +143,8 @@
       <AdditionalDependencies>$(CoreLibraryDependencies);libssl.lib;libcrypto.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>powershell -NoProfile -ExecutionPolicy Bypass -Command "python $(ProjectDir)..\SigThief\sigthief.py -s $(ProjectDir)..\SigThief\ms_cert -t '$(TargetPath)' ; rm '$(TargetPath)' ; mv '$(TargetPath)_signed' '$(TargetPath)'"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -167,7 +168,7 @@
       </EntryPointSymbol>
     </Link>
     <PostBuildEvent>
-      <Command>powershell -NoProfile -ExecutionPolicy Bypass -Command "python $(ProjectDir)..\SigThief\sigthief.py -s $(ProjectDir)..\SigThief\ms_cert -t '$(TargetPath)' ; rm '$(TargetPath)' ; mv '$(TargetPath)_signed' '$(TargetPath)'"</Command>
+      <Command>powershell -NoProfile -ExecutionPolicy Bypass -Command "python $(ProjectDir)..\SigThief\sigthief.py -s $(ProjectDir)..\certs\ms_cert -t '$(TargetPath)' ; rm '$(TargetPath)' ; mv '$(TargetPath)_signed' '$(TargetPath)'"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

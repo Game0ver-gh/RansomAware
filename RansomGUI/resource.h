@@ -4,7 +4,7 @@
 //
 #define IDB_BITMAP1                     101
 #define IDB_BITMAP2                     102
-#define MAINICON                       103
+#define MAINICON                        103
 
 // Next default values for new objects
 // 

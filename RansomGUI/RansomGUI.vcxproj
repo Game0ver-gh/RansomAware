@@ -84,7 +84,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>..\bin\</OutDir>
-    <TargetName>RansomAware</TargetName>
+    <TargetName>RansomGUI</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -129,7 +129,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>powershell -NoProfile -ExecutionPolicy Bypass -Command "python $(ProjectDir)..\SigThief\sigthief.py -s $(ProjectDir)..\SigThief\ms_cert -t '$(TargetPath)' ; rm '$(TargetPath)' ; mv '$(TargetPath)_signed' '$(TargetPath)'"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -149,7 +150,7 @@
       <GenerateDebugInformation>false</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>powershell -NoProfile -ExecutionPolicy Bypass -Command "python $(ProjectDir)..\SigThief\sigthief.py -s $(ProjectDir)..\SigThief\ms_cert -t '$(TargetPath)' ; rm '$(TargetPath)' ; mv '$(TargetPath)_signed' '$(TargetPath)'"</Command>
+      <Command>powershell -NoProfile -ExecutionPolicy Bypass -Command "python $(ProjectDir)..\SigThief\sigthief.py -s $(ProjectDir)..\certs\ms_cert -t '$(TargetPath)' ; rm '$(TargetPath)' ; mv '$(TargetPath)_signed' '$(TargetPath)'"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
